@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - My Project</title>
+    <!-- Linking your style.css from the sidebar -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Required for io.emit to work on the client side -->
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    // Perform AJAX request here
+    // On failure:
+    failedLoginCount++;
+    checkSecurity();
+});
+
+
+document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    // Example AJAX request (using fetch)
+    fetch('/your-login-endpoint', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect or show success
+        } else {
+            failedLoginCount++;
+            checkSecurity();
+        }
+    })
+    .catch(error => {
+        console.error('Error during login:', error);
+    });
+});
+    <div class="container">
+        <div class="login-container">
+            <h2>Login</h2>
+            <form action="login.html" method="post">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Your external script -->
+    <script src="script.js"></script>
+
+    <!-- Your internal logic correctly wrapped in script tags -->
+    <script>
+        // Initialize socket connection
+        const socket = io(); 
+
+        let failedLoginCount = 0;
+
+        function checkSecurity() {
+            if (failedLoginCount >= 3) {
+                socket.emit("securityAlert", {
+                    level: "WARNING",
+                    message: "Multiple failed login attempts detected"
+                });
+            }
+
+            if (failedLoginCount >= 6) {
+                socket.emit("securityAlert", {
+                    level: "CRITICAL",
+                    message: "High number of failed attempts. Account locked."
+                });
+            }
+        }
+
+        // Example: logic to increment the count (you'll need to trigger this on login failure)
+        // failedLoginCount++;
+        // checkSecurity();
+    </script>
+
+</body>
+</html>

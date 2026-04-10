@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Portal</title>   
+    <link rel="stylesheet" href="style.css">    
+    <style>
+        /* Specific Dashboard Layout Tweaks */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .logout-button {
+            background-color: #ef4444; /* Red for logout */
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .card h3 {
+            text-align: left;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>  
+    <div class="container" style="max-width: 800px;"> <!-- Wider for dashboard -->
+        <header>
+            <h1>Welcome, <span id="usernameDisplay">Student</span>!</h1>
+            <button id="logoutBtn" class="logout-button">Logout</button>
+        </header>
+
+        <section class="dashboard-intro">
+            <h2>Your Learning Hub</h2>
+            <p>Access your assignments, track your progress, and manage your applications.</p>
+            
+            <!-- Quick Action Links -->
+            <ul class="action-list">
+                <li><a href="assignments.html">📝 View & Submit Assignments</a></li>
+                <li><a href="grades.html">📊 View My Grades</a></li>
+                <li><a href="profile.html">👤 Update My Profile</a></li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <div class="dashboard-grid">
+            <!-- Pending Assignments -->
+            <div class="card">
+                <h3>Recent Status</h3>
+                <p>You have <strong>2 pending</strong> assignments that require attention.</p>
+            </div>
+
+            <!-- Submitted Assignments List -->
+            <div class="card">
+                <h3>My Submitted Assignments</h3>
+                <ul id="submitted-assignments">
+                    <li>Assignment 1: Introduction to HTML - <span style="color: green;">Submitted</span></li>
+                    <li>Assignment 2: CSS Basics - <span style="color: green;">Submitted</span></li>
+                </ul>
+            </div>
+
+            <!-- Applications List -->
+            <div class="card">
+                <h3>My Applications</h3>
+                <ul id="my-applications">
+                    <li>Certificate in General Agriculture - <span style="color: orange;">Processing</span></li>
+                    <li>Diploma in General Agriculture - <span style="color: orange;">Pending Review</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Dashboard Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Get the user's name from LocalStorage (set during login)
+            const userName = localStorage.getItem('userName');
+            if (userName) {
+                document.getElementById('usernameDisplay').innerText = userName;
+            }
+
+            // 2. Logout Logic
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('token'); // Clear the security token
+                localStorage.removeItem('userName');
+                window.location.href = 'index.html'; // Redirect to login
+            });
+
+            // 3. Security Check: If no token, kick them back to login
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

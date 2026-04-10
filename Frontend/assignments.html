@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignments - Student Portal</title>
+    <!-- Fixed: Added missing bracket -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>My Assignments</h1>
+        <p>View your course materials and submit your completed work below.</p>
+        
+        <div class="assignment-links">
+            <h3>Quick Links:</h3>
+            <ul>
+                <li><a href="assignment1.html">Assignment 1: Introduction to HTML</a></li>
+                <li><a href="assignment2.html">Assignment 2: CSS Basics</a></li>
+                <li><a href="assignment3.html">Assignment 3: JavaScript Fundamentals</a></li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <!-- Fixed: Consolidated into ONE form that matches your server.js logic -->
+        <section class="submission-section">
+            <h2>Submit Your Work</h2>
+            <form id="assignmentForm">
+                <!-- Hidden or manual student ID for now -->
+                <label for="studentId">Student ID:</label>
+                <input type="text" id="studentId" name="studentId" placeholder="e.g. STU123" required>
+
+                <label for="courseId">Course ID:</label>
+                <input type="text" id="courseId" name="courseId" placeholder="e.g. WEB101" required>
+
+                <label for="assignmentTitle">Assignment Title:</label>
+                <select id="assignmentTitle" name="assignmentTitle" required>
+                    <option value="">-- Select an assignment --</option>
+                    <option value="Introduction to HTML">Assignment 1: Introduction to HTML</option>
+                    <option value="CSS Basics">Assignment 2: CSS Basics</option>
+                    <option value="JavaScript Fundamentals">Assignment 3: JavaScript Fundamentals</option>
+                </select>
+
+                <label for="description">Short Description:</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+
+                <label for="file">Upload File (PDF/Zip):</label>
+                <input type="file" id="file" name="file" required>
+
+                <button type="submit" id="submitBtn">Submit Assignment</button>
+            </form>
+
+            <p id="success-message" style="display:none; color: green; font-weight: bold; margin-top: 10px;">
+                ✅ Assignment submitted successfully!
+            </p>
+            <p id="error-message" style="display:none; color: red; font-weight: bold; margin-top: 10px;">
+                ❌ Error submitting assignment. Please try again.
+            </p>
+        </section>
+    </div>
+
+    <!-- Fixed: Corrected script source -->
+    <script src="script.js"></script>
+
+    <script>
+        // Form Submission Logic
+        document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('success-message');
+            const errorMsg = document.getElementById('error-message');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Uploading...";
+
+            // Use FormData because we are sending a file
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('http://localhost:5000/api/assignments/upload', {
+                    method: 'POST',
+                    body: formData
+                    // Note: Don't set Content-Type header when using FormData; the browser does it automatically
+                });
+
+                if (response.ok) {
+                    successMsg.style.display = 'block';
+                    errorMsg.style.display = 'none';
+                    e.target.reset(); // Clear the form
+                } else {
+                    throw new Error('Server returned an error');
+                }
+            } catch (err) {
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Assignment";
+            }
+        });
+    </script>
+</body>
+</html>

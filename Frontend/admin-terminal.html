@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TERMINAL: SHADOW_PROTOCOL v5.0</title>
+<style>
+    :root { --neon-green: #00ff41; --dark-void: #000500; --terminal-bg: rgba(0, 15, 0, 0.9); }
+    body { background: var(--dark-void); color: var(--neon-green); font-family: 'Courier New', monospace; margin: 0; overflow: hidden; height: 100vh; }
+    #matrix-canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.25; }
+
+    #terminal { 
+        width: 90%; margin: 20px auto; padding: 20px; height: 70vh;
+        background: var(--terminal-bg); border: 1px solid #003b00;
+        overflow-y: auto; white-space: pre-wrap; box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
+        scrollbar-width: thin; scrollbar-color: #003b00 transparent;
+    }
+    #status-bar {
+        width: 90%; margin: 0 auto; padding: 5px 15px; background: #001a00;
+        border: 1px solid #003b00; display: flex; justify-content: space-between; font-size: 0.8rem;
+    }
+    #cmd-line { 
+        width: 90%; margin: 10px auto; display: flex; align-items: center; 
+        background: #000; border: 1px solid var(--neon-green); padding: 10px; position: relative;
+    }
+    #prompt { font-weight: bold; margin-right: 10px; color: var(--neon-green); }
+    #cmd { flex: 1; background: transparent; border: none; color: var(--neon-green); font-family: monospace; outline: none; font-size: 1rem; }
+    .system-msg { color: var(--neon-green); }
+    .error-msg { color: #ff003c; text-shadow: 0 0 8px #ff003c; font-weight: bold; }
+    .broadcast-msg { color: #00d4ff; text-transform: uppercase; border-left: 3px solid #00d4ff; padding-left: 10px; }
+    .input-msg { color: #008f11; }
+    .hint { color: #004d00; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+
+<div id="status-bar">
+    <span>SYSTEM: ONLINE</span>
+    <span>AUTH_LEVEL: ROOT_ADMIN</span>
+    <span id="clock">00:00:00</span>
+</div>
+
+<div id="terminal">[ROOT@CENTRAL_CORE ~]# INITIALIZING_SHADOW_PROTOCOL...
+[OK] WEBSOCKET_HANDSHAKE_COMPLETE
+[OK] ENCRYPTION_LAYER_ACTIVE
+> Type 'help' for available overrides.
+--------------------------------------------------</div>
+
+<div id="cmd-line">
+    <span id="prompt">admin@mainframe:~$</span>
+    <input id="cmd" placeholder="Execute command..." autofocus autocomplete="off" />
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+    // 1. MATRIX RAIN EFFECT
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const chars = "01010101ABCDEFGHIJKLMNOPQRSTUVWXYZｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿ";
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#0F0";
+        ctx.font = fontSize + "px monospace";
+        for(let i = 0; i < drops.length; i++) {
+            const text = chars.charAt(Math.floor(Math.random() * chars.length));
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 35);
+
+    // 2. SOCKET & TERMINAL LOGIC
+    const token = localStorage.getItem('token');
+    const socket = io('http://localhost:5000', { auth: { token } });
+    const terminal = document.getElementById('terminal');
+    const cmdInput = document.getElementById('cmd');
+
+    const commands = ["help", "broadcast", "lock", "unlock", "list students", "check database", "clear", "status"];
+    let history = JSON.parse(localStorage.getItem('commandHistory')) || [];
+    let hIndex = -1;
+
+    function append(msg, type='system-msg') {
+        const time = new Date().toLocaleTimeString();
+        terminal.innerHTML += `<div class="${type}">[${time}] ${msg}</div>`;
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Command Autocomplete Suggestions
+    const suggestionBox = document.createElement('div');
+    suggestionBox.style.position = 'absolute';
+    suggestionBox.style.background = '#000';
+    suggestionBox.style.border = '1px solid #00ff41';
+    suggestionBox.style.color = '#00ff41';
+    suggestionBox.style.padding = '5px';
+    suggestionBox.style.display = 'none';
+    document.body.appendChild(suggestionBox);
+
+    function showSuggestions(value) {
+        const inputRect = document.getElementById('cmd').getBoundingClientRect();
+        suggestionBox.style.left = inputRect.left + 'px';
+        suggestionBox.style.top = (inputRect.bottom + window.scrollY) + 'px';
+
+        const suggestions = commands.filter(c => c.startsWith(value.toLowerCase()));
+        if (suggestions.length === 0 || value.trim() === '') {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+        suggestionBox.innerHTML = suggestions.map(s => `<div style="cursor:pointer;">${s}</div>`).join('');
+        suggestionBox.style.display = 'block';
+
+        Array.from(suggestionBox.children).forEach(div => {
+            div.onclick = () => {
+                document.getElementById('cmd').value = div.innerText;
+                suggestionBox.style.display = 'none';
+                document.getElementById('cmd').focus();
+            };
+        });
+    }
+
+    // Input Event for Suggestions
+    document.getElementById('cmd').addEventListener('input', () => {
+        showSuggestions(cmdInput.value);
+    });
+
+    // Command Line Key Handling
+    cmdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const val = cmdInput.value.toLowerCase();
+            const match = commands.find(c => c.startsWith(val));
+            if (match) cmdInput.value = match;
+        }
+        if (e.key === 'Enter') {
+            const val = cmdInput.value.trim();
+            if (!val) return;
+            append(`> ${val}`, 'input-msg');
+            // Save to history
+            if (!history.includes(val)) {
+                history.unshift(val);
+                localStorage.setItem('commandHistory', JSON.stringify(history));
+            }
+            hIndex = -1;
+
+            if (val.toLowerCase() === 'clear') terminal.innerHTML = '[TERMINAL_WIPED]';
+            else if (val.toLowerCase() === 'help') append("AVAILABLE: broadcast [msg], lock [email], unlock [email], list students, status, clear");
+            else socket.emit('adminCommand', val);
+            cmdInput.value = '';
+        }
+        if (e.key === 'ArrowUp') {
+            if (hIndex < history.length - 1) { hIndex++; cmdInput.value = history[hIndex]; }
+        }
+        if (e.key === 'ArrowDown') {
+            if (hIndex > 0) { hIndex--; cmdInput.value = history[hIndex]; }
+            else { hIndex = -1; cmdInput.value = ''; }
+        }
+    });
+
+    // Socket Listeners
+    socket.on('commandResult', res => append(res.message, res.success ? 'system-msg' : 'error-msg'));
+    socket.on('newBroadcast', data => append(`[GLOBAL_MSG] ${data.message}`, 'broadcast-msg'));
+    socket.on('securityAlert', data => {
+        append(`[!!!] SECURITY_${data.level}: ${data.message}`, 'error-msg');
+
+        // Desktop Notification
+        if (Notification.permission === 'granted') {
+            new Notification(`Security Alert: ${data.level}`, {
+                body: data.message,
+                icon: 'https://img.icons8.com/ios/50/000000/security-shield.png'
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification(`Security Alert: ${data.level}`, {
+                        body: data.message,
+                        icon: 'https://img.icons8.com/ios/50/000000/security-shield.png'
+                    });
+                }
+            });
+        }
+    });
+
+    // Clock update
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Request notification permission on load
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+</script>
+</body>
+</html>

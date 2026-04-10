@@ -1,0 +1,147 @@
+/* --- Modern Portal Styles --- */
+
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --bg-color: #f8f9fa;
+    --text-color: #2b2d42;
+    --card-bg: #ffffff;
+    --border-radius: 12px;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+/* --- Main Container --- */
+.container {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 500px; /* Perfect for Login and Forms */
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+h1, h2 {
+    color: var(--text-color);
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
+p {
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* --- Form Styling --- */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: -10px;
+    color: #4a4a4a;
+}
+
+input,
+input[type="password"],
+input[type="file"],
+select,
+textarea {
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+}
+
+/* --- Buttons --- */
+button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- List Styling (For Assignments) --- */
+ul {
+    list-style: none;
+    margin-bottom: 30px;
+}
+
+ul li {
+    background: #f1f3f5;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+ul li a {
+    display: block;
+    padding: 15px;
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+ul li:hover {
+    transform: translateX(5px);
+    background: #e9ecef;
+}
+
+/* --- Feedback Messages --- */
+#success-message, #error-message {
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-top: 15px;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 30px 0;
+}

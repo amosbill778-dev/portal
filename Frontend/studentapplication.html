@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Application - Student Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container" style="max-width: 600px;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Application</h1>
+            <a href="dashboard.html" style="text-decoration: none; color: var(--primary-color); font-weight: bold;">← Back</a>
+        </header>
+
+        <p>Complete the form below to apply for your desired certificate or diploma program.</p>
+
+        <form id="application-form">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" placeholder="student@example.com" required>
+
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" placeholder="0700 000 000" required>
+
+            <label for="courseId">Program of Interest:</label>
+            <select id="courseId" name="courseId" required>
+                <option value="">-- Select a program --</option>
+                <option value="Cert-Agric">Certificate in General Agriculture</option>
+                <option value="Dip-Agric">Diploma in General Agriculture</option>
+                <option value="CBET-Agric">CBET (Competency Based Training)</option>
+            </select>
+
+            <label for="reason">Why are you interested in this program?</label>
+            <textarea id="reason" name="reason" rows="4" placeholder="Briefly describe your goals..." required></textarea>
+
+            <button type="submit" id="submitBtn">Submit Application</button>
+        </form>
+
+        <div id="status-message" style="margin-top: 20px; text-align: center; display: none;">
+            <p id="message-text" style="font-weight: bold;"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('application-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const statusDiv = document.getElementById('status-message');
+            const msgText = document.getElementById('message-text');
+
+            btn.disabled = true;
+            btn.innerText = "Submitting...";
+
+            // Prepare data for the backend
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                courseId: document.getElementById('courseId').value,
+                reason: document.getElementById('reason').value,
+                // In a real app, you'd pull this ID from LocalStorage token
+                studentId: localStorage.getItem('userId') || "GUEST-USER"
+            };
+
+            try {
+                const response = await fetch('http://localhost:5000/api/applications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    statusDiv.style.display = "block";
+                    msgText.innerText = "✅ Application submitted successfully!";
+                    msgText.style.color = "green";
+                    e.target.reset(); // Clear form
+                } else {
+                    throw new Error("Submission failed");
+                }
+            } catch (err) {
+                statusDiv.style.display = "block";
+                msgText.innerText = "❌ Error: Could not submit application.";
+                msgText.style.color = "red";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Submit Application";
+            }
+        });
+    </script>
+</body>
+</html>
