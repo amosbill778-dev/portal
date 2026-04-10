@@ -1,6 +1,8 @@
 // Backend/routes/studentRoutes.js
 const express = require('express');
 const router = express.Router();
+const Student=require("./models/students")
+
 
 // Import the controller functions
 const studentController = require('../controllers/studentController');
